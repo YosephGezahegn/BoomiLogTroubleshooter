@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Execution Time Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Log Execution Time Analyzer</h1>
+            <p>Upload a log file to find the largest execution times</p>
+        </header>
+
+        <div class="upload-section">
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="file-input-container">
+                    <label for="file-upload" class="custom-file-upload">
+                        <span id="file-name">Choose a log file</span>
+                    </label>
+                    <input type="file" id="file-upload" name="file" accept=".txt,.log">
+                </div>
+                
+                <div class="options">
+                    <label for="top-n">Number of results:</label>
+                    <input type="number" id="top-n" name="top_n" min="1" max="100" value="10">
+                </div>
+                
+                <button type="submit" class="submit-btn">Analyze</button>
+            </form>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Processing your log file...</p>
+        </div>
+
+        <div id="results-container" class="results-container hidden">
+            <h2>Top <span id="result-count"></span> Largest Execution Times</h2>
+            <div id="results" class="results"></div>
+        </div>
+
+        <div id="error-container" class="error-container hidden">
+            <h2>Error</h2>
+            <p id="error-message"></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
