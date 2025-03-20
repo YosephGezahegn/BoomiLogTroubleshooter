@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Execution Time Analyzer</title>
+    <title>Boomi Log Troubleshooter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- D3.js for visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Log Execution Time Analyzer</h1>
-            <p>Upload a log file to find the largest execution times</p>
+            <h1>Boomi Log Troubleshooter</h1>
+            <p>Upload a Boomi log file to analyze execution times and visualize process flow</p>
         </header>
 
         <div class="upload-section">
@@ -40,6 +42,33 @@
         <div id="results-container" class="results-container hidden">
             <h2>Top <span id="result-count"></span> Largest Execution Times</h2>
             <div id="results" class="results"></div>
+        </div>
+
+        <div id="process-flow-container" class="process-flow-container hidden">
+            <h2>Process Flow Visualization</h2>
+            <div class="process-info">
+                <p>Process: <span id="process-name">Unknown</span></p>
+            </div>
+            <div class="visualization-controls">
+                <button id="zoom-in">Zoom In</button>
+                <button id="zoom-out">Zoom Out</button>
+                <button id="reset-view">Reset View</button>
+            </div>
+            <div id="flow-visualization" class="flow-visualization"></div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color step-node"></div>
+                    <span>Process Step</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color subprocess-node"></div>
+                    <span>Subprocess</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color slow-execution"></div>
+                    <span>Slow Execution (>100ms)</span>
+                </div>
+            </div>
         </div>
 
         <div id="error-container" class="error-container hidden">
