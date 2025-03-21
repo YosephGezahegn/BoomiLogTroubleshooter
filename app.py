@@ -50,10 +50,10 @@ def find_largest_ms_times(file_content, top_n=10):
         doc_match = doc_pattern.search(line)
         if doc_match:
             doc_count = int(doc_match.group(1))
-            # Try to extract shape name from the line
-            shape_match = re.search(r'INFO\s+(.+?)\s+', line)
-            if shape_match:
-                shape_name = shape_match.group(1).strip()
+            
+            # Extract shape name using the new function
+            shape_name = extract_shape_name(lines, line_num-1)
+            if shape_name:
                 shape_doc_counts[shape_name] = doc_count
                 current_shape = shape_name
                 logger.info(f"Found shape {shape_name} with {doc_count} documents at line {line_num}")
@@ -63,11 +63,8 @@ def find_largest_ms_times(file_content, top_n=10):
         for match in matches:
             time_value = int(match)
             
-            # Extract shape name from the line if possible
-            shape_name = None
-            shape_match = re.search(r'INFO\s+(.+?)\s+', line)
-            if shape_match:
-                shape_name = shape_match.group(1).strip()
+            # Extract shape name using the new function
+            shape_name = extract_shape_name(lines, line_num-1)
             
             # Get document count if available
             doc_count = None
@@ -120,6 +117,49 @@ def find_largest_ms_times(file_content, top_n=10):
             break  # Just take the first context for each time value
     
     return results
+
+def extract_shape_name(lines, line_index):
+    """
+    Extracts the shape name from a log line according to these rules:
+    1. If shape has a name, extract it from the log line (e.g., "[Common] HTTP.01 HubSpot API")
+    2. If shape doesn't have a name, check the line above for the type
+       - e.g., "Executing Decision with X document(s)" -> "Decision"
+       - e.g., "Data Process Execution (SCRIPTING)" -> "Data Process"
+    
+    Args:
+        lines: List of all log lines
+        line_index: Index of the current line
+        
+    Returns:
+        Extracted shape name or None if not found
+    """
+    current_line = lines[line_index]
+    
+    # Case 1: Try to extract shape name from current line
+    # Example: "INFO Connector [Common] HTTP.01 HubSpot API: http Connector"
+    shape_match = re.search(r'INFO\s+\w+\s+(\[\w+\]\s+[\w\.\d]+\s+[^;]+)', current_line)
+    if shape_match:
+        return shape_match.group(1).strip()
+    
+    # If not found, try alternate format (just extract the shape name after INFO)
+    shape_match = re.search(r'INFO\s+([^:]+?)\s+', current_line)
+    shape_name = shape_match.group(1).strip() if shape_match else None
+    
+    # Case 2: If no shape name or shape name doesn't contain specific identifiers, check previous line
+    if line_index > 0 and (not shape_name or not re.search(r'[\[\]:]', current_line)):
+        previous_line = lines[line_index - 1]
+        
+        # Check for "Executing Decision with X document(s)"
+        decision_match = re.search(r'Executing\s+(\w+)\s+with', previous_line)
+        if decision_match:
+            return decision_match.group(1).strip()
+        
+        # Check for "Data Process Execution (SCRIPTING)"
+        process_match = re.search(r'(\w+\s+\w+)\s+Execution', previous_line)
+        if process_match:
+            return process_match.group(1).strip()
+    
+    return shape_name
 
 def extract_process_flow(file_content):
     """
