@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 80%;
     margin: 0 auto;
     background-color: #fff;
     border-radius: 8px;
@@ -42,6 +42,48 @@ header p {
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 30px;
+}
+
+/* Two-column content layout */
+.content-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.main-column {
+    min-width: 0;
+}
+
+.sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+.warnings-sidebar {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    padding: 16px;
+}
+
+.warnings-sidebar h2 {
+    color: #e67e22;
+    margin-bottom: 12px;
+}
+
+#warnings-list .warning-item {
+    margin-bottom: 12px;
+}
+
+@media (max-width: 1024px) {
+    .content-layout {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        position: static;
+    }
 }
 
 #upload-form {

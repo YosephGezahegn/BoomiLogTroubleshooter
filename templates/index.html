@@ -37,17 +37,17 @@
             </form>
         </div>
 
-        <div id="loading" class="loading hidden">
+        <div class="content-layout">
+            <div class="main-column">
+                <div id="loading" class="loading hidden">
             <div class="spinner"></div>
             <p>Processing your log file...</p>
         </div>
-
-        <div id="results-container" class="results-container hidden">
+                <div id="results-container" class="results-container hidden">
             <h2>Top <span id="result-count"></span> Largest Execution Times</h2>
             <div id="results" class="results"></div>
         </div>
-
-        <div id="process-flow-container" class="process-flow-container hidden">
+                <div id="process-flow-container" class="process-flow-container hidden">
             <h2>Process Flow Visualization</h2>
             <div class="process-info">
                 <p>Process: <span id="process-name">Unknown</span></p>
@@ -73,10 +73,18 @@
                 </div>
             </div>
         </div>
+            </div>
 
-        <div id="error-container" class="error-container hidden">
+            <aside class="sidebar">
+                <div id="warnings-sidebar" class="warnings-sidebar hidden">
+                    <h2>Warnings and Severe Logs</h2>
+                    <div id="warnings-list"></div>
+                </div>
+                <div id="error-container" class="error-container hidden">
             <h2>Error</h2>
             <p id="error-message"></p>
+        </div>
+            </aside>
         </div>
     </div>
 

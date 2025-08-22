@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultCount = document.getElementById('result-count');
     const errorContainer = document.getElementById('error-container');
     const errorMessage = document.getElementById('error-message');
+    const warningsSidebar = document.getElementById('warnings-sidebar');
+    const warningsList = document.getElementById('warnings-list');
     const processName = document.getElementById('process-name');
     const flowVisualization = document.getElementById('flow-visualization');
     
@@ -142,6 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContainer.classList.add('hidden');
         processFlowContainer.classList.add('hidden');
         errorContainer.classList.add('hidden');
+        if (warningsSidebar && warningsList) {
+            warningsSidebar.classList.add('hidden');
+            warningsList.innerHTML = '';
+        }
         
         // Check if a file was selected
         if (!fileUpload.files || !fileUpload.files[0]) {
@@ -217,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add file info at the top of results
                 results.insertBefore(fileInfoElement, results.firstChild);
                 
-                // Display warnings and severe logs
+                // Display warnings and severe logs (sidebar)
                 if (data.warnings_and_severe) {
                     displayWarningsAndSevere(data.warnings_and_severe);
                 }
@@ -371,63 +377,54 @@ document.addEventListener('DOMContentLoaded', function() {
         debug('Results displayed successfully');
     }
     
-    // Function to display warnings and severe logs
+    // Function to display warnings and severe logs (right sidebar)
     function displayWarningsAndSevere(warningsData) {
         debug('Displaying warnings and severe logs', { count: warningsData ? warningsData.length : 0 });
-        
-        if (!warningsData || warningsData.length === 0) {
-            debug('No warnings or severe logs found');
+        if (!warningsSidebar || !warningsList) {
+            debug('Sidebar elements not found, skipping warnings rendering');
             return;
         }
-        
-        // Create warnings container
-        const warningsContainer = document.createElement('div');
-        warningsContainer.className = 'warnings-container';
-        
-        // Create header
-        const warningsHeader = document.createElement('h2');
-        warningsHeader.textContent = 'Warnings and Severe Logs';
-        warningsContainer.appendChild(warningsHeader);
-        
-        // Create warnings list
-        warningsData.forEach(warning => {
-            const warningItem = document.createElement('div');
-            warningItem.className = 'warning-item';
-            
-            if (warning.level === 'SEVERE') {
-                warningItem.classList.add('severe');
-            }
-            
-            const warningHeader = document.createElement('div');
-            warningHeader.className = 'warning-header';
-            
-            const timestamp = document.createElement('span');
-            timestamp.className = 'warning-timestamp';
-            timestamp.textContent = warning.timestamp;
-            
-            const level = document.createElement('span');
-            level.className = 'warning-level';
-            level.textContent = warning.level;
-            
-            const component = document.createElement('span');
-            component.className = 'warning-component';
-            component.textContent = warning.component;
-            
-            warningHeader.appendChild(timestamp);
-            warningHeader.appendChild(level);
-            warningHeader.appendChild(component);
-            
-            const message = document.createElement('div');
-            message.className = 'warning-message';
-            message.textContent = warning.message;
-            
-            warningItem.appendChild(warningHeader);
-            warningItem.appendChild(message);
-            
-            warningsContainer.appendChild(warningItem);
+        if (!warningsData || warningsData.length === 0) {
+            warningsSidebar.classList.add('hidden');
+            warningsList.innerHTML = '';
+            return;
+        }
+        warningsList.innerHTML = '';
+        const sortedWarnings = [...warningsData].sort((a, b) => {
+            const wa = a && a.level === 'SEVERE' ? 0 : 1;
+            const wb = b && b.level === 'SEVERE' ? 0 : 1;
+            if (wa !== wb) return wa - wb; // SEVERE (0) first
+            return 0; // keep relative order within same level
         });
-        
-        // Add warnings container to results
-        results.appendChild(warningsContainer);
+        sortedWarnings.forEach(warning => warningsList.appendChild(createWarningItem(warning)));
+        warningsSidebar.classList.remove('hidden');
+    }
+
+    function createWarningItem(warning) {
+        const warningItem = document.createElement('div');
+        warningItem.className = 'warning-item';
+        if (warning.level === 'SEVERE') {
+            warningItem.classList.add('severe');
+        }
+        const warningHeader = document.createElement('div');
+        warningHeader.className = 'warning-header';
+        const timestamp = document.createElement('span');
+        timestamp.className = 'warning-timestamp';
+        timestamp.textContent = warning.timestamp;
+        const level = document.createElement('span');
+        level.className = 'warning-level';
+        level.textContent = warning.level;
+        const component = document.createElement('span');
+        component.className = 'warning-component';
+        component.textContent = warning.component;
+        warningHeader.appendChild(timestamp);
+        warningHeader.appendChild(level);
+        warningHeader.appendChild(component);
+        const message = document.createElement('div');
+        message.className = 'warning-message';
+        message.textContent = warning.message;
+        warningItem.appendChild(warningHeader);
+        warningItem.appendChild(message);
+        return warningItem;
     }
 });
