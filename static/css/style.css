@@ -56,6 +56,26 @@ header p {
     min-width: 250px;
 }
 
+.drop-zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 10px;
+    border: 2px dashed #9aa0a6;
+    border-radius: 6px;
+    color: #5f6368;
+    background-color: #fafafa;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.drop-zone.dragover {
+    border-color: #3498db;
+    background-color: #eef7ff;
+}
+
 .custom-file-upload {
     display: block;
     padding: 12px 15px;

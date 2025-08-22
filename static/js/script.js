@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('upload-form');
     const fileUpload = document.getElementById('file-upload');
     const fileName = document.getElementById('file-name');
+    const dropZone = document.getElementById('drop-zone');
     const loading = document.getElementById('loading');
     const resultsContainer = document.getElementById('results-container');
     const processFlowContainer = document.getElementById('process-flow-container');
@@ -38,26 +39,76 @@ document.addEventListener('DOMContentLoaded', function() {
 
     debug('DOM loaded, initializing app');
 
-    // Update file name when a file is selected
+    // Helpers
+    function isAcceptableFile(file) {
+        if (!file) return false;
+        const name = file.name || '';
+        const ext = name.split('.').pop().toLowerCase();
+        return ext === 'txt' || ext === 'log';
+    }
+
+    function setFile(file) {
+        if (!isAcceptableFile(file)) {
+            showError('Unsupported file type. Only .txt and .log files are supported.');
+            fileUpload.value = '';
+            fileName.textContent = 'Choose a log file';
+            return;
+        }
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileUpload.files = dataTransfer.files;
+        fileName.textContent = file.name;
+        errorContainer.classList.add('hidden');
+        debug('File set via drag/drop or click:', file.name);
+    }
+
+    // Update file name when a file is selected via picker
     fileUpload.addEventListener('change', function() {
         if (this.files && this.files[0]) {
-            const file = this.files[0];
-            const fileExtension = file.name.split('.').pop().toLowerCase();
-            
-            if (fileExtension !== 'txt' && fileExtension !== 'log') {
-                showError('Unsupported file type. Only .txt and .log files are supported.');
-                this.value = ''; // Clear the file input
-                fileName.textContent = 'Choose a log file';
-                return;
-            }
-            
-            fileName.textContent = file.name;
-            debug('File selected:', file.name);
+            setFile(this.files[0]);
         } else {
             fileName.textContent = 'Choose a log file';
             debug('No file selected');
         }
     });
+
+    // Drag & Drop events
+    if (dropZone) {
+        ['dragenter', 'dragover'].forEach(evtName => {
+            dropZone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(evtName => {
+            dropZone.addEventListener(evtName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('dragover');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt && dt.files ? dt.files : null;
+            if (!files || files.length === 0) {
+                showError('No file dropped. Please drop a .txt or .log file.');
+                return;
+            }
+            setFile(files[0]);
+        });
+
+        // Click to trigger file picker
+        dropZone.addEventListener('click', () => fileUpload.click());
+        dropZone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileUpload.click();
+            }
+        });
+    }
     
     // Zoom controls
     if (zoomIn && zoomOut && resetView) {

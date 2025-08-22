@@ -339,12 +339,12 @@ def process_file():
     start_time = time.time()
     
     if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
+        return jsonify({'error': 'No file part'}), 400
     
     file = request.files['file']
     
     if file.filename == '':
-        return jsonify({'error': 'No selected file'})
+        return jsonify({'error': 'No selected file'}), 400
     
     if file:
         try:
@@ -353,7 +353,7 @@ def process_file():
             file_extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
             
             if file_extension not in ['txt', 'log']:
-                return jsonify({'error': 'Unsupported file type. Only .txt and .log files are supported.'})
+                return jsonify({'error': 'Unsupported file type. Only .txt and .log files are supported.'}), 400
             
             logger.info(f"Processing file: {filename} with extension: {file_extension}")
             file_content = file.read().decode('utf-8')
@@ -390,9 +390,9 @@ def process_file():
             return jsonify({
                 'error': f"Error processing file: {str(e)}",
                 'details': error_details
-            })
+            }), 500
     
-    return jsonify({'error': 'Unknown error'})
+    return jsonify({'error': 'Unknown error'}), 400
 
 if __name__ == '__main__':
     # Use a different port to avoid conflicts with AirPlay
