@@ -1,0 +1,30 @@
+2025-10-20T06:30:00Z	INFO	Start Shape	[Common]	Executing Process TestProcess_v1
+2025-10-20T06:30:00.123Z	INFO	HTTP Connector	[Common] API Call: GET	Executing GET Operation in 245 ms with 1 document(s)
+2025-10-20T06:30:00.456Z	INFO	Map Shape	[Common] Data Transformation	Processing 1 document(s) in 12 ms
+2025-10-20T06:30:00.789Z	INFO	Database Connector	[Common] SQL Query: SELECT	Executing SELECT Operation in 1234 ms with 50 document(s)
+2025-10-20T06:30:02.123Z	WARNING	Validation Shape	[Common] Data Validation	Validation warning: Missing optional field 'email'
+2025-10-20T06:30:02.456Z	INFO	Business Rules	[Common] Rule Engine	Applied 3 rules in 45 ms with 50 document(s)
+2025-10-20T06:30:02.789Z	INFO	Map Shape	[Common] Data Transformation	Processing 50 document(s) in 234 ms
+2025-10-20T06:30:03.123Z	INFO	HTTP Connector	[Common] API Call: POST	Executing POST Operation in 567 ms with 50 document(s)
+2025-10-20T06:30:03.890Z	SEVERE	HTTP Connector	[Common] API Call: POST	HTTP 500 Internal Server Error - Connection timeout
+2025-10-20T06:30:04.123Z	INFO	Decision Shape	[Common] Route Decision	Routing 49 document(s) in 5 ms
+2025-10-20T06:30:04.456Z	INFO	HTTP Connector	[Common] API Call: POST	Executing POST Operation in 345 ms with 49 document(s)
+2025-10-20T06:30:04.901Z	INFO	Map Shape	[Common] Data Transformation	Processing 49 document(s) in 123 ms
+2025-10-20T06:30:05.234Z	INFO	Database Connector	[Common] SQL Query: INSERT	Executing INSERT Operation in 678 ms with 49 document(s)
+2025-10-20T06:30:06.012Z	INFO	Notify Shape	[Common] Email Notification	Sent notification in 89 ms
+2025-10-20T06:30:06.234Z	INFO	Stop Shape	[Common]	Process execution completed in 6234 ms with 49 document(s) processed
+2025-10-20T06:30:06.345Z	INFO	Start Shape	[Common]	Continuation f_0_0_0_1 - Fetching next page
+2025-10-20T06:30:06.567Z	INFO	HTTP Connector	[Common] API Call: GET	Executing GET Operation in 189 ms with 1 document(s)
+2025-10-20T06:30:06.789Z	INFO	Map Shape	[Common] Data Transformation	Processing 1 document(s) in 8 ms
+2025-10-20T06:30:07.123Z	INFO	Database Connector	[Common] SQL Query: SELECT	Executing SELECT Operation in 987 ms with 50 document(s)
+2025-10-20T06:30:08.234Z	INFO	Map Shape	[Common] Data Transformation	Processing 50 document(s) in 198 ms
+2025-10-20T06:30:08.567Z	INFO	HTTP Connector	[Common] API Call: POST	Executing POST Operation in 432 ms with 50 document(s)
+2025-10-20T06:30:09.123Z	INFO	Stop Shape	[Common]	Process execution completed in 2778 ms with 50 document(s) processed
+2025-10-20T06:30:09.234Z	INFO	Start Shape	[Common]	Continuation f_0_0_0_2 - Fetching next page
+2025-10-20T06:30:09.456Z	INFO	HTTP Connector	[Common] API Call: GET	Executing GET Operation in 201 ms with 1 document(s)
+2025-10-20T06:30:09.678Z	INFO	Map Shape	[Common] Data Transformation	Processing 1 document(s) in 11 ms
+2025-10-20T06:30:10.123Z	INFO	Database Connector	[Common] SQL Query: SELECT	Executing SELECT Operation in 1123 ms with 25 document(s)
+2025-10-20T06:30:11.345Z	WARNING	HTTP Connector	[Common] API Call: POST	HTTP 429 Too Many Requests - Rate limit exceeded
+2025-10-20T06:30:11.567Z	INFO	Map Shape	[Common] Data Transformation	Processing 24 document(s) in 156 ms
+2025-10-20T06:30:11.890Z	INFO	HTTP Connector	[Common] API Call: POST	Executing POST Operation in 389 ms with 24 document(s)
+2025-10-20T06:30:12.456Z	INFO	Stop Shape	[Common]	Process execution completed in 3222 ms with 24 document(s) processed

@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Large log files (test data)
+*.log
+!sample_log.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Next.js
+.next/
+out/
+
+# Build
+dist/
+build/
+
+# Misc
+*.pdf

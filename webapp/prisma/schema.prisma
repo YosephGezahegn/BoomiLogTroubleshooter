@@ -1,0 +1,251 @@
+// Prisma schema for Boomi Log Analysis Platform
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== User Management =====
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed with bcrypt
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  analyses          Analysis[]
+  boomiConnections  BoomiConnection[]
+  scheduledAnalyses ScheduledAnalysis[]
+  notifications     Notification[]
+
+  @@map("users")
+}
+
+// ===== Analysis Storage =====
+
+model Analysis {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // File metadata
+  fileName  String
+  fileSize  Int      // in bytes
+  lineCount Int?
+  
+  // Source tracking
+  sourceType        String   // "MANUAL_UPLOAD" | "API_FETCH" | "SCHEDULED"
+  boomiConnectionId String?
+  boomiConnection   BoomiConnection? @relation(fields: [boomiConnectionId], references: [id], onDelete: SetNull)
+  
+  // Boomi execution context (for API-fetched logs)
+  executionId      String?
+  processId        String?
+  processName      String?
+  executionStatus  String?  // "Success" | "Error" | "Warning"
+  executionMode    String?  // "Production" | "Test" | "Development"
+  
+  // Analysis results (stored as JSON)
+  summary          Json     // { duration, totalShapes, documentsProcessed, errorCount, warningCount }
+  topSlowShapes    Json?    // [ { shapeName, executionTime, ... } ]
+  errorAnalysis    Json?    // { errors: [], categorized: {}, timeline: [] }
+  processFlow      Json?    // { nodes: [], edges: [], hierarchy: [] }
+  connectorStats   Json?    // { connectors: [], usage: {}, performance: {} }
+  paginationData   Json?    // { detected: boolean, iterations: [], ... }
+  
+  // Timestamps
+  analyzedAt       DateTime @default(now())
+  executionStartTime DateTime?  // From log file
+  executionEndTime   DateTime?  // From log file
+  
+  @@index([userId])
+  @@index([boomiConnectionId])
+  @@index([executionId])
+  @@index([analyzedAt])
+  @@map("analyses")
+}
+
+// ===== Boomi API Integration =====
+
+model BoomiConnection {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Connection details
+  name      String   // User-friendly name (e.g., "Production Account")
+  accountId String
+  username  String
+  apiToken  String   // Encrypted with AES-256
+  
+  // Status
+  isActive  Boolean  @default(true)
+  lastUsed  DateTime?
+  lastError String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  analyses          Analysis[]
+  scheduledAnalyses ScheduledAnalysis[]
+  apiUsageLogs      ApiUsageLog[]
+  
+  @@unique([userId, accountId])
+  @@index([userId])
+  @@map("boomi_connections")
+}
+
+// ===== Scheduled Analysis Jobs =====
+
+model ScheduledAnalysis {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  boomiConnectionId String
+  boomiConnection   BoomiConnection @relation(fields: [boomiConnectionId], references: [id], onDelete: Cascade)
+  
+  // Job configuration
+  name              String
+  cronExpression    String   // e.g., "0 */6 * * *" (every 6 hours)
+  processId         String?  // null = all processes
+  processName       String?
+  
+  // Filter options
+  onlyErrors        Boolean  @default(true)
+  minDurationMs     Int?     // Only analyze if execution took longer than this
+  
+  // Notification settings
+  notifyEmail       String?
+  notifyOnSuccess   Boolean  @default(false)
+  notifyOnError     Boolean  @default(true)
+  
+  // Status
+  isActive          Boolean  @default(true)
+  lastRunAt         DateTime?
+  lastRunStatus     String?  // "Success" | "Failed" | "Partial"
+  nextRunAt         DateTime?
+  errorCount        Int      @default(0)
+  successCount      Int      @default(0)
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([boomiConnectionId])
+  @@index([nextRunAt])
+  @@map("scheduled_analyses")
+}
+
+// ===== API Usage Tracking =====
+
+model ApiUsageLog {
+  id                String   @id @default(cuid())
+  boomiConnectionId String
+  boomiConnection   BoomiConnection @relation(fields: [boomiConnectionId], references: [id], onDelete: Cascade)
+  
+  // Request details
+  endpoint          String   // "ExecutionRecord" | "ProcessLog" | "ComponentMetadata"
+  method            String   // "GET" | "POST" | "CREATE"
+  requestParams     Json?
+  
+  // Response details
+  statusCode        Int
+  responseTime      Int      // in milliseconds
+  success           Boolean
+  errorMessage      String?
+  
+  // Usage metrics
+  recordsReturned   Int?
+  rateLimitRemaining Int?
+  
+  // Timestamp
+  createdAt         DateTime @default(now())
+  
+  @@index([boomiConnectionId])
+  @@index([createdAt])
+  @@map("api_usage_logs")
+}
+
+// ===== Component Metadata Cache =====
+
+model ComponentCache {
+  id            String   @id @default(cuid())
+  accountId     String
+  componentId   String
+  componentType String   // "Connector" | "Process" | "Shape"
+  
+  // Cached metadata
+  name          String
+  metadata      Json     // Full metadata object from Boomi API
+  
+  // Cache management
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  
+  @@unique([accountId, componentId])
+  @@index([expiresAt])
+  @@map("component_cache")
+}
+
+// ===== Notifications =====
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Notification details
+  type      String   // "ERROR_EXECUTION" | "SCHEDULED_COMPLETE" | "PERFORMANCE_DEGRADATION"
+  title     String
+  message   String
+  data      Json?    // Additional data (analysisId, executionId, etc.)
+  
+  // Status
+  isRead    Boolean  @default(false)
+  emailSent Boolean  @default(false)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ===== Audit Log =====
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  // null for system actions
+  
+  // Action details
+  action    String   // "LOGIN" | "ANALYZE" | "API_CALL" | "CONNECTION_CREATED"
+  resource  String?  // Resource type (e.g., "Analysis", "BoomiConnection")
+  resourceId String? // ID of the resource
+  details   Json?    // Additional context
+  
+  // Request metadata
+  ipAddress String?
+  userAgent String?
+  
+  // Timestamp
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
